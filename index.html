@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>NEON GAME SYSTEM</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#000;color:#00ff9c;
+ font-family:Consolas,monospace;min-height:100vh;
+ display:flex;justify-content:center;align-items:center;
+ overflow-x:hidden
+}
+body:before{
+ content:"";position:fixed;inset:0;pointer-events:none;
+ background:repeating-linear-gradient(
+ transparent 0px,transparent 3px,
+ rgba(0,255,140,.035) 4px,transparent 5px);
+}
+.screen{
+ width:min(92%,440px);padding:28px 22px;
+ border:1px solid #00ff9c;border-radius:14px;
+ background:rgba(0,10,6,.96);
+ box-shadow:0 0 25px #00ff9c30;
+ text-align:center;position:relative;z-index:1
+}
+h1{font-size:25px;text-shadow:0 0 12px #00ff9c}
+p{line-height:1.6;color:#b5ffd9}
+button,input{
+ width:100%;padding:13px;margin-top:12px;
+ background:#020a06;border:1px solid #00ff9c;
+ color:#00ff9c;border-radius:6px;font-size:15px
+}
+button{cursor:pointer;font-weight:bold}
+button:hover{background:#00ff9c;color:#000}
+input{text-align:center;outline:none}
+.hidden{display:none!important}
+.warning{color:#ff4d6d;text-shadow:0 0 10px red}
+.bar{height:5px;background:#123;margin:20px 0}
+#progress{height:5px;background:#00ff9c;width:0}
+.stat{
+ text-align:left;padding:12px;margin:12px 0;
+ border:1px solid #14583d;border-radius:7px
+}
+.stat-head{display:flex;justify-content:space-between;gap:8px}
+.track{height:7px;background:#173329;margin-top:9px}
+.fill{height:100%;background:#00ff9c}
+.small{font-size:12px;color:#7fae96}
+.row{display:flex;gap:10px}
+.row button{flex:1}
+#log{white-space:pre-line;min-height:55px}
+</style>
+</head>
+<body>
+<main class="screen" id="app">
+ <h1>NEON // GAME SYSTEM</h1>
+ <p id="log">INITIALIZING SYSTEM...</p>
+ <div class="bar"><div id="progress"></div></div>
+ <div id="controls"></div>
+ <p class="small">DEMO SIMULATOR • NO GAME MODIFICATION</p>
+</main>
+
+<script>
+const app=document.getElementById("app");
+const log=document.getElementById("log");
+const controls=document.getElementById("controls");
+const progress=document.getElementById("progress");
+
+function wait(ms){
+ return new Promise(resolve=>setTimeout(resolve,ms));
+}
+function show(text,html=""){
+ log.textContent=text;
+ controls.innerHTML=html;
+ progress.style.width="0";
+}
+async function typeText(text,seconds=5){
+ controls.innerHTML="";
+ log.textContent="";
+ const delay=seconds*1000/Math.max(text.length,1);
+ for(let i=0;i<text.length;i++){
+   log.textContent+=text[i];
+   progress.style.width=((i+1)/text.length*100)+"%";
+   await wait(delay);
+ }
+}
+function button(label,action){
+ const b=document.createElement("button");
+ b.textContent=label;b.onclick=action;
+ controls.appendChild(b);
+ return b;
+}
+function field(placeholder,type="text"){
+ const input=document.createElement("input");
+ input.placeholder=placeholder;input.type=type;
+ input.autocomplete="off";
+ controls.appendChild(input);
+ return input;
+}
+function pair(a,fnA,b,fnB){
+ const r=document.createElement("div");
+ r.className="row";controls.appendChild(r);
+ for(const [label,fn] of [[a,fnA],[b,fnB]]){
+  const x=document.createElement("button");
+  x.textContent=label;x.onclick=fn;r.appendChild(x);
+ }
+}
+function exitDemo(){
+ show("SESSION ENDED",""); 
+ button("Restart demo",start);
+}
+async function start(){
+ await typeText("BOOTING NEON SECURITY SYSTEM...",5);
+ await wait(3000);
+ show("");
+ await wait(1000);
+ await typeText("THIS LINK ISN'T SAFE",5);
+ log.className="warning";
+ pair("Continue",access,"Back",exitDemo);
+}
+async function access(){
+ log.className="";
+ await typeText("PLEASE ENTER WEBSITE CODE — 6 LETTERS",5);
+ show("DEMO ACCESS PASSWORD");
+ const pass=field("Enter demo password","password");
+ button("Unlock",()=>{
+  if(pass.value!=="282010"){
+   show("Incorrect password. Try again.");
+   button("Retry",access);return;
+  }
+  gameId();
+ });
+}
+async function gameId(){
+ await typeText("PLEASE ENTER YOUR GAME ID",5);
+ show("GAME ID VERIFICATION");
+ const id=field("Game ID: 8–11 digits","text");
+ id.inputMode="numeric";
+ button("Verify ID",async()=>{
+  if(!/^\d{8,11}$/.test(id.value.trim())){
+   show("ID must contain 8 to 11 digits.");
+   button("Try again",gameId);return;
+  }
+  show("PLEASE WAIT...");
+  let n=10;
+  log.textContent="Verifying demo ID: "+n+"s";
+  const timer=setInterval(()=>{
+   n--;log.textContent="PLEASE WAIT... "+n+"s";
+   if(n<=0){clearInterval(timer);emailStep();}
+  },1000);
+ });
+}
+async function emailStep(){
+ await typeText("PLEASE ENTER YOUR GAME EMAIL",5);
+ show("EMAIL FORMAT CHECK");
+ const email=field("example@gmail.com","email");
+ button("Continue",()=>{
+  if(!/^[^\s@]+@gmail\.com$/i.test(email.value.trim())){
+   show("Please enter a valid @gmail.com address.");
+   button("Try again",emailStep);return;
+  }
+  dashboard();
+ });
+}
+function rand(min,max,digits=1){
+ return (Math.random()*(max-min)+min).toFixed(digits);
+}
+function dashboard(){
+ log.className="";
+ show("PREMIUM GAMING DASHBOARD");
+ const stats=[
+  ["Headshot rate",rand(5,10)+"%",5,10],
+  ["Running boosted",rand(.5,5)+"%",.5,5],
+  ["Accuracy",rand(1,5)+"%",1,5],
+  ["Movement",rand(.8,5)+"%",.8,5]
+ ];
+ stats.forEach(([name,value,min,max])=>{
+  const n=parseFloat(value);
+  const el=document.createElement("div");
+  el.className="stat";
+  el.innerHTML=`<div class="stat-head"><span>${name}</span>
+  <b>${value}</b></div><div class="track">
+  <div class="fill" style="width:${Math.min(n/max*100,100)}%"></div>
+  </div>`;
+  controls.appendChild(el);
+ });
+ const note=document.createElement("p");
+ note.className="small";
+ note.textContent="Random demo values only. These do not change actual game performance.";
+ controls.appendChild(note);
+ pair("Customize",customize,"Next",boost);
+}
+function customize(){
+ show("FEATURE LOCKED");
+ const p=document.createElement("p");
+ p.textContent="DEMO CUSTOMIZE — 500.00 BDT";
+ controls.appendChild(p);
+ const note=document.createElement("p");
+ note.className="small";
+ note.textContent="No payment is collected by this demo.";
+ controls.appendChild(note);
+ pair("Payment info",contact,"Cancel",dashboard);
+}
+function contact(){
+ show("CONTACT AGENT");
+ const p=document.createElement("p");
+ p.textContent="01970660980";
+ controls.appendChild(p);
+ button("WhatsApp",()=>{
+  window.open("https://wa.me/8801970660980","_blank");
+ });
+ button("Call agent",()=>{
+  window.location.href="tel:+8801970660980";
+ });
+ button("Back",dashboard);
+}
+async function boost(){
+ await typeText("BOOST UP YOUR GAME — PLEASE OPEN YOUR GAME AND LET'S PLAY",10);
+ show("READY TO LAUNCH GAME");
+ button("Open your game",openGame);
+ button("Back to dashboard",dashboard);
+}
+function openGame(){
+ // Android may open Free Fire if installed and supported.
+ window.location.href=
+  "intent://#Intent;package=com.dts.freefireth;end";
+ setTimeout(()=>{
+  show("If the game did not open, launch it manually from your phone.");
+  button("Back",dashboard);
+ },2500);
+}
+start();
+</script>
+</body>
+  </html>
+  
